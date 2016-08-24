@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.jingtuo.android.app.MainActivity">
+
+    <com.jingtuo.android.widget.SwipeRefreshRecyclerView
+        android:id="@+id/swipeRefreshRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"></com.jingtuo.android.widget.SwipeRefreshRecyclerView>
+</LinearLayout>
