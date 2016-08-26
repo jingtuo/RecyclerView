@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="loading" type="id"></item>
+    <item name="load_failure" type="id"></item>
+    <item name="empty" type="id"></item>
+    <item name="recycler_view" type="id"></item>
+</resources>

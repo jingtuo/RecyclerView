@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">library</string>
+
+    <string name="loading">loading...</string>
+    <string name="load_failure">Load Failure, Click Reload</string>
+    <string name="empty">No Data, Click Reload</string>
 </resources>

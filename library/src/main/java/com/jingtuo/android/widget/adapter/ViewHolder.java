@@ -6,7 +6,7 @@ import android.view.View;
 /**
  * Created by 28173_000 on 2016/8/24.
  */
-public class ViewHolder<T> extends RecyclerView.ViewHolder {
+public abstract class ViewHolder<T> extends RecyclerView.ViewHolder {
 
     private View view;
 
@@ -17,11 +17,19 @@ public class ViewHolder<T> extends RecyclerView.ViewHolder {
         view = itemView;
     }
 
-    public T getData() {
+    public final T getData() {
         return data;
     }
 
-    public void setData(T data) {
+    public final void setData(T data) {
         this.data = data;
+        setView(data);
     }
+
+    public final View getView() {
+        return view;
+    }
+
+    public abstract void setView(T data);
+
 }

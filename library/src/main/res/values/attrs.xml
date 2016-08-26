@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="RichRecyclerView">
+        <attr name="status" format="enum">
+            <enum name="loading" value="0"></enum>
+            <enum name="loadFailure" value="1"></enum>
+            <enum name="empty" value="2"></enum>
+            <enum name="normal" value="3"></enum>
+        </attr>
+        <attr name="loadingLayout" format="reference"></attr>
+        <attr name="loadFailureLayout" format="reference"></attr>
+        <attr name="emptyLayout" format="reference"></attr>
+    </declare-styleable>
+</resources>
