@@ -22,6 +22,7 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     private RefreshRecyclerView recyclerView;
+    private RichRecyclerView richRecyclerView;
     private Random random = new Random();
 
     @Override
@@ -29,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         recyclerView = (RefreshRecyclerView) findViewById(R.id.recyclerView);
+        richRecyclerView = recyclerView.getRichRecyclerView();
         recyclerView.setEnabled(false);
         recyclerView.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -36,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
                 handler.sendEmptyMessageDelayed(4, 3000);
             }
         });
-        recyclerView.getRichRecyclerView().setOnReloadListener(new RichRecyclerView.OnReloadListener() {
+        richRecyclerView.setOnReloadListener(new RichRecyclerView.OnReloadListener() {
             @Override
             public void onReload() {
                 recyclerView.getRichRecyclerView().setStatus(RichRecyclerView.Status.LOADING);
@@ -53,25 +55,25 @@ public class MainActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             if (0 == msg.what) {//失败
-                recyclerView.getRichRecyclerView().setStatus(RichRecyclerView.Status.LOAD_FAILURE);
+                richRecyclerView.setStatus(RichRecyclerView.Status.LOAD_FAILURE);
                 return ;
             }
             if (1 == msg.what) {//无数据
-                recyclerView.getRichRecyclerView().setStatus(RichRecyclerView.Status.EMPTY);
+                richRecyclerView.setStatus(RichRecyclerView.Status.EMPTY);
                 return;
             }
             if (4 == msg.what) {//刷新数据
                 recyclerView.setRefreshing(false);
-                recyclerView.getRichRecyclerView().getRecyclerAdapter().setData(getData());
-                recyclerView.getRichRecyclerView().getRecyclerAdapter().notifyDataSetChanged();
+                richRecyclerView.getRecyclerAdapter().setData(getData());
+                richRecyclerView.getRecyclerAdapter().notifyDataSetChanged();
                 return;
             }
             recyclerView.setEnabled(true);
-            recyclerView.getRichRecyclerView().setStatus(RichRecyclerView.Status.NORMAL);
+            richRecyclerView.setStatus(RichRecyclerView.Status.NORMAL);
             LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MainActivity.this);
             linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-            recyclerView.getRichRecyclerView().setLayoutManager(linearLayoutManager);
-            recyclerView.getRichRecyclerView().addItemDecoration(new LinearItemDecoration(linearLayoutManager, ContextCompat.getDrawable(MainActivity.this, R.drawable.recycler_view_decoration)));
+            richRecyclerView.setLayoutManager(linearLayoutManager);
+            richRecyclerView.addItemDecoration(new LinearItemDecoration(linearLayoutManager, ContextCompat.getDrawable(MainActivity.this, R.drawable.recycler_view_decoration)));
             RecyclerAdapter<String> adapter = new RecyclerAdapter<String>(MainActivity.this) {
                 @Override
                 public ViewHolder<String> onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -85,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                     };
                 }
             };
-            recyclerView.getRichRecyclerView().setRecyclerAdapter(adapter);
+            richRecyclerView.setRecyclerAdapter(adapter);
             adapter.setData(getData());
             adapter.notifyDataSetChanged();
 
