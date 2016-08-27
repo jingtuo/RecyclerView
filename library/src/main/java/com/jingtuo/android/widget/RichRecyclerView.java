@@ -218,4 +218,12 @@ public class RichRecyclerView extends LinearLayout {
     public RecyclerAdapter getRecyclerAdapter() {
         return recyclerAdapter;
     }
+
+
+    public RecyclerView.LayoutManager getLayoutManger() {
+        if (Status.NORMAL == status && recyclerView!=null) {
+           return  recyclerView.getLayoutManager();
+        }
+        return null;
+    }
 }

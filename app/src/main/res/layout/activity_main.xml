@@ -7,11 +7,11 @@
     tools:context="com.jingtuo.android.app.MainActivity"
     android:orientation="vertical">
 
-    <com.jingtuo.android.widget.RichRecyclerView
-        android:id="@+id/richRecyclerView"
+    <com.jingtuo.android.widget.RefreshRecyclerView
+        android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:status="loading"
-        ></com.jingtuo.android.widget.RichRecyclerView>
+        ></com.jingtuo.android.widget.RefreshRecyclerView>
 
 </LinearLayout>

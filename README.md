@@ -1,5 +1,6 @@
-# SwipeRefreshRecyclerView
-结合SwipeRefreshLayout和RecyclerView组装成一个常用的下拉刷新的组件
+# RecyclerView
+内容：
+1，RichRecyclerView--结合LinearLayout和RecyclerView,支持特性：loading,loadFailure,empty,normal
 
 特点：
 1，支持异步加载;
