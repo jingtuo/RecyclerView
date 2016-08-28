@@ -11,6 +11,7 @@ import java.util.ArrayList;
  * 使用RecyclerView不能直接View.inflate()
  * <pre>
  *     onBindViewHolder中创建view时,如果希望单个元素宽度等于屏幕宽度,不能使用View.inflate(),需要使用inflater.inflate(layoutId, 任意view, false)
+ *     当业务常见出现多个viewType，建议将不同viewType对应的数据整合为一个类，否则无法使用此类
  * </pre>
  * Created by 28173_000 on 2016/8/24.
  */

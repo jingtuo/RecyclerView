@@ -12,8 +12,6 @@ public class RefreshRecyclerView extends SwipeRefreshLayout {
 
     private RichRecyclerView richRecyclerView;
 
-    private LinearLayoutManager linearLayoutManager;
-
     public RefreshRecyclerView(Context context) {
         super(context);
         initView(context, null);
@@ -26,14 +24,7 @@ public class RefreshRecyclerView extends SwipeRefreshLayout {
 
     private void initView(Context context, AttributeSet attrs) {
         richRecyclerView = new RichRecyclerView(context, attrs);
-        linearLayoutManager = new LinearLayoutManager(context);
-        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        richRecyclerView.setLayoutManager(linearLayoutManager);
         addView(richRecyclerView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-    }
-
-    public LinearLayoutManager getLinearLayoutManager() {
-        return linearLayoutManager;
     }
 
     public RichRecyclerView getRichRecyclerView() {

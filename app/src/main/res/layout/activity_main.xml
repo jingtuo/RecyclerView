@@ -7,11 +7,9 @@
     tools:context="com.jingtuo.android.app.MainActivity"
     android:orientation="vertical">
 
-    <com.jingtuo.android.widget.RefreshRecyclerView
-        android:id="@+id/recyclerView"
+    <com.jingtuo.android.widget.MultiRecyclerView
+        android:id="@+id/multiRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:status="loading"
-        ></com.jingtuo.android.widget.RefreshRecyclerView>
+        android:layout_height="match_parent"></com.jingtuo.android.widget.MultiRecyclerView>
 
 </LinearLayout>

@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import com.jingtuo.android.widget.adapter.RecyclerAdapter;
 
 /**
+ * 结合{@link LinearLayout}和{@link RecyclerView} 组成一个支持多种状态{@link Status}的RichRecyclerView组件
  * Created by JingTuo on 16/8/25.
  */
 public class RichRecyclerView extends LinearLayout {
@@ -23,11 +24,11 @@ public class RichRecyclerView extends LinearLayout {
 
     private Status status = Status.NORMAL;
 
-    private int loadingLayoutId;
+    private int loadingLayoutId = R.layout.loading_default;
 
-    private int loadFailureLayoutId;
+    private int loadFailureLayoutId = R.layout.load_failure_default;
 
-    private int emptyLayoutId;
+    private int emptyLayoutId = R.layout.empty_default;
 
     private View loadingView;
 
@@ -52,8 +53,6 @@ public class RichRecyclerView extends LinearLayout {
     }
 
     private void initView(Context context, @Nullable AttributeSet attrs) {
-        setOrientation(VERTICAL);
-        setGravity(Gravity.CENTER);
         if (attrs != null) {
             final TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.RichRecyclerView);
             int value = array.getInt(R.styleable.RichRecyclerView_status, -1);
@@ -63,6 +62,8 @@ public class RichRecyclerView extends LinearLayout {
             emptyLayoutId = array.getResourceId(R.styleable.RichRecyclerView_emptyLayout, R.layout.empty_default);
             array.recycle();
         }
+        setOrientation(VERTICAL);
+        setGravity(Gravity.CENTER);
         setView(status);
     }
 
@@ -134,13 +135,10 @@ public class RichRecyclerView extends LinearLayout {
             showView(R.id.empty);
         } else {
             if (recyclerView == null) {
-                loadingView = null;
-                loadFailureView = null;
-                emptyView = null;
-                removeAllViews();
                 recyclerView = new RecyclerView(getContext());
                 addChildView(recyclerView, R.id.recycler_view);
             }
+            showView(R.id.recycler_view);
         }
     }
 
@@ -225,5 +223,41 @@ public class RichRecyclerView extends LinearLayout {
            return  recyclerView.getLayoutManager();
         }
         return null;
+    }
+
+    public View getLoadFailureView() {
+        return loadFailureView;
+    }
+
+    public View getLoadingView() {
+        return loadingView;
+    }
+
+    public View getEmptyView() {
+        return emptyView;
+    }
+
+    public void setLoadingLayoutId(int loadingLayoutId) {
+        this.loadingLayoutId = loadingLayoutId;
+    }
+
+    public void setLoadFailureLayoutId(int loadFailureLayoutId) {
+        this.loadFailureLayoutId = loadFailureLayoutId;
+    }
+
+    public void setEmptyLayoutId(int emptyLayoutId) {
+        this.emptyLayoutId = emptyLayoutId;
+    }
+
+    public int getLoadingLayoutId() {
+        return loadingLayoutId;
+    }
+
+    public int getLoadFailureLayoutId() {
+        return loadFailureLayoutId;
+    }
+
+    public int getEmptyLayoutId() {
+        return emptyLayoutId;
     }
 }
