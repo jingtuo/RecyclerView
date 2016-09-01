@@ -10,5 +10,7 @@
         <attr name="loadingLayout" format="reference"></attr>
         <attr name="loadFailureLayout" format="reference"></attr>
         <attr name="emptyLayout" format="reference"></attr>
+        <attr name="decoration" format="reference"></attr>
     </declare-styleable>
+
 </resources>

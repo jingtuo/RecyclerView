@@ -15,10 +15,6 @@ public class Item {
 
     private ArrayList<Item> subItems;
 
-    private String selectedSubKey;
-
-    private ArrayList<String> selectedSubKeys;
-
     public String getKey() {
         return key;
     }
@@ -41,22 +37,6 @@ public class Item {
 
     public void setSubItems(ArrayList<Item> subItems) {
         this.subItems = subItems;
-    }
-
-    public String getSelectedSubKey() {
-        return selectedSubKey;
-    }
-
-    public void setSelectedSubKey(String selectedSubKey) {
-        this.selectedSubKey = selectedSubKey;
-    }
-
-    public ArrayList<String> getSelectedSubKeys() {
-        return selectedSubKeys;
-    }
-
-    public void setSelectedSubKeys(ArrayList<String> selectedSubKeys) {
-        this.selectedSubKeys = selectedSubKeys;
     }
 
     public boolean isHasSubItems() {

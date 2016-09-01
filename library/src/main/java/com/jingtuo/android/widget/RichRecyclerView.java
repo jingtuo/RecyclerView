@@ -2,33 +2,35 @@ package com.jingtuo.android.widget;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import com.jingtuo.android.widget.adapter.RecyclerAdapter;
+import com.jingtuo.android.widget.model.Status;
 
 /**
  * 结合{@link LinearLayout}和{@link RecyclerView} 组成一个支持多种状态{@link Status}的RichRecyclerView组件
  * Created by JingTuo on 16/8/25.
  */
-public class RichRecyclerView extends LinearLayout {
+public class RichRecyclerView extends FrameLayout {
 
-    public enum Status {
-        LOADING, LOAD_FAILURE, EMPTY, NORMAL
-    }
+    private Status status;
 
-    private Status status = Status.NORMAL;
+    private int loadingLayoutId;
 
-    private int loadingLayoutId = R.layout.loading_default;
+    private int loadFailureLayoutId;
 
-    private int loadFailureLayoutId = R.layout.load_failure_default;
+    private int emptyLayoutId;
 
-    private int emptyLayoutId = R.layout.empty_default;
+    private int decorationId;
 
     private View loadingView;
 
@@ -42,28 +44,27 @@ public class RichRecyclerView extends LinearLayout {
 
     private OnReloadListener onReloadListener;
 
-    public RichRecyclerView(Context context) {
-        super(context);
-        initView(context, null);
-    }
-
     public RichRecyclerView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         initView(context, attrs);
     }
 
     private void initView(Context context, @Nullable AttributeSet attrs) {
-        if (attrs != null) {
-            final TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.RichRecyclerView);
-            int value = array.getInt(R.styleable.RichRecyclerView_status, -1);
-            this.status = getStatus(value);
-            loadingLayoutId = array.getResourceId(R.styleable.RichRecyclerView_loadingLayout, R.layout.loading_default);
-            loadFailureLayoutId = array.getResourceId(R.styleable.RichRecyclerView_loadFailureLayout, R.layout.load_failure_default);
-            emptyLayoutId = array.getResourceId(R.styleable.RichRecyclerView_emptyLayout, R.layout.empty_default);
-            array.recycle();
+        final TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.RichRecyclerView);
+        int value = array.getInt(R.styleable.RichRecyclerView_status, -1);
+        status = getStatus(value);
+        loadingLayoutId = array.getResourceId(R.styleable.RichRecyclerView_loadingLayout, R.layout.loading_default);
+        loadFailureLayoutId = array.getResourceId(R.styleable.RichRecyclerView_loadFailureLayout, R.layout.load_failure_default);
+        emptyLayoutId = array.getResourceId(R.styleable.RichRecyclerView_emptyLayout, R.layout.empty_default);
+        decorationId = array.getResourceId(R.styleable.RichRecyclerView_decoration, R.drawable.decoration_default);
+        array.recycle();
+        recyclerView = new RecyclerView(context, attrs);
+        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+        if (layoutManager instanceof LinearLayoutManager) {
+            if (decorationId != -1) {
+                recyclerView.addItemDecoration(new LinearItemDecoration((LinearLayoutManager) layoutManager, ContextCompat.getDrawable(context, decorationId)));
+            }
         }
-        setOrientation(VERTICAL);
-        setGravity(Gravity.CENTER);
         setView(status);
     }
 
@@ -80,25 +81,19 @@ public class RichRecyclerView extends LinearLayout {
         return Status.NORMAL;
     }
 
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        if (status == null) {
-            status = Status.NORMAL;
-        }
+    /**
+     * @param status 参数不允许为null
+     */
+    public void setStatus(@NonNull Status status) {
         this.status = status;
         setView(status);
     }
 
     /**
-     * 当状态在{@link Status#LOADING},{@link Status#LOAD_FAILURE},{@link Status#EMPTY}之间进行切换,当前组件会包含三个状态对应的组件;
-     * 当状态为{@link Status#NORMAL}时,当前组件只一个组件-RecyclerView
      *
      * @param status
      */
-    public void setView(Status status) {
+    private void setView(Status status) {
         if (Status.LOADING == status) {
             if (loadingView == null) {
                 loadingView = View.inflate(getContext(), loadingLayoutId, null);
@@ -133,9 +128,9 @@ public class RichRecyclerView extends LinearLayout {
                 addChildView(emptyView, R.id.empty);
             }
             showView(R.id.empty);
-        } else {
-            if (recyclerView == null) {
-                recyclerView = new RecyclerView(getContext());
+        } else if (Status.NORMAL==status) {
+            View view = findViewById(R.id.recycler_view);
+            if (view == null) {
                 addChildView(recyclerView, R.id.recycler_view);
             }
             showView(R.id.recycler_view);
@@ -151,28 +146,6 @@ public class RichRecyclerView extends LinearLayout {
     private void addChildView(View view, int id) {
         view.setId(id);
         addView(view, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-    }
-
-    /**
-     * 设置布局方式,只有状态是{@link Status#NORMAL},调用此方法才有作用
-     *
-     * @param layoutManager
-     */
-    public void setLayoutManager(LinearLayoutManager layoutManager) {
-        if (Status.NORMAL == status && recyclerView != null) {
-            recyclerView.setLayoutManager(layoutManager);
-        }
-    }
-
-    /**
-     * 添加分割线,只有状态是{@link Status#NORMAL},调用此方法才有作用
-     *
-     * @param itemDecoration
-     */
-    public void addItemDecoration(RecyclerView.ItemDecoration itemDecoration) {
-        if (Status.NORMAL == status && recyclerView != null) {
-            recyclerView.addItemDecoration(itemDecoration);
-        }
     }
 
     /**
@@ -207,22 +180,12 @@ public class RichRecyclerView extends LinearLayout {
      * @param recyclerAdapter
      */
     public void setRecyclerAdapter(RecyclerAdapter recyclerAdapter) {
-        if (Status.NORMAL == status && recyclerView != null) {
-            this.recyclerAdapter = recyclerAdapter;
-            recyclerView.setAdapter(recyclerAdapter);
-        }
+        this.recyclerAdapter = recyclerAdapter;
+        recyclerView.setAdapter(recyclerAdapter);
     }
 
     public RecyclerAdapter getRecyclerAdapter() {
         return recyclerAdapter;
-    }
-
-
-    public RecyclerView.LayoutManager getLayoutManger() {
-        if (Status.NORMAL == status && recyclerView!=null) {
-           return  recyclerView.getLayoutManager();
-        }
-        return null;
     }
 
     public View getLoadFailureView() {
@@ -259,5 +222,9 @@ public class RichRecyclerView extends LinearLayout {
 
     public int getEmptyLayoutId() {
         return emptyLayoutId;
+    }
+
+    public Status getStatus() {
+        return status;
     }
 }

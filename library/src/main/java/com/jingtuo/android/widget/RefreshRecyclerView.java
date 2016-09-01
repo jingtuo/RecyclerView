@@ -2,8 +2,10 @@ package com.jingtuo.android.widget;
 
 import android.content.Context;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.LinearLayoutManager;
 import android.util.AttributeSet;
+
+import com.jingtuo.android.widget.adapter.RecyclerAdapter;
+import com.jingtuo.android.widget.model.Status;
 
 /**
  * Created by 28173_000 on 2016/8/27.
@@ -11,11 +13,6 @@ import android.util.AttributeSet;
 public class RefreshRecyclerView extends SwipeRefreshLayout {
 
     private RichRecyclerView richRecyclerView;
-
-    public RefreshRecyclerView(Context context) {
-        super(context);
-        initView(context, null);
-    }
 
     public RefreshRecyclerView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -30,4 +27,21 @@ public class RefreshRecyclerView extends SwipeRefreshLayout {
     public RichRecyclerView getRichRecyclerView() {
         return richRecyclerView;
     }
+
+    public void setStatus(Status status) {
+        richRecyclerView.setStatus(status);
+    }
+
+    public void setRecyclerAdapter(RecyclerAdapter recyclerAdapter) {
+        richRecyclerView.setRecyclerAdapter(recyclerAdapter);
+    }
+
+    public RecyclerAdapter getRecyclerAdapter() {
+        return richRecyclerView.getRecyclerAdapter();
+    }
+
+    public Status getStatus() {
+        return richRecyclerView.getStatus();
+    }
+
 }

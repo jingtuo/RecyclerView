@@ -7,19 +7,17 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jingtuo.android.widget.LinearItemDecoration;
 import com.jingtuo.android.widget.MultiRecyclerView;
 import com.jingtuo.android.widget.RefreshRecyclerView;
-import com.jingtuo.android.widget.RichRecyclerView;
 import com.jingtuo.android.widget.adapter.RecyclerAdapter;
 import com.jingtuo.android.widget.adapter.ViewHolder;
 import com.jingtuo.android.widget.model.Item;
+import com.jingtuo.android.widget.model.Status;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -31,56 +29,67 @@ public class MainActivity extends AppCompatActivity {
 
     private MultiRecyclerView multiRecyclerView;
 
+    private Item selected;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         multiRecyclerView = (MultiRecyclerView) findViewById(R.id.multiRecyclerView);
-        RefreshRecyclerView refreshRecyclerView = multiRecyclerView.getRefreshRecyclerView(0);
-        refreshRecyclerView.setEnabled(false);
-        RichRecyclerView richRecyclerView = refreshRecyclerView.getRichRecyclerView();
-        richRecyclerView.setStatus(RichRecyclerView.Status.LOADING);
-        MyListener listener = new MyListener(null, 0);
-        refreshRecyclerView.setOnRefreshListener(listener);
-        sendMessage(WHAT_INIT, 0, getData(0, null));
+        RefreshRecyclerView refreshRecyclerView = createRefreshRecyclerView();
+        refreshRecyclerView.setOnRefreshListener(new MyListener(0, null));
+        multiRecyclerView.addRefreshRecyclerView(refreshRecyclerView);
+        multiRecyclerView.setStatus(0, Status.LOADING);
+        sendMessage(WHAT_INIT, 0, new MsgObj(null, getData(0, null)));
     }
 
     private Handler handler = new Handler() {
         @Override
-        public void handleMessage(Message msg) {
+        public synchronized void handleMessage(Message msg) {
             super.handleMessage(msg);
-            if (WHAT_INIT==msg.what) {
-                int level = msg.arg1;
-                ArrayList<Item> items = ( ArrayList<Item>)msg.obj;
-                RefreshRecyclerView refreshRecyclerView = multiRecyclerView.getRefreshRecyclerView(level);
-                refreshRecyclerView.setEnabled(true);
-                RichRecyclerView richRecyclerView = refreshRecyclerView.getRichRecyclerView();
-                richRecyclerView.setStatus(RichRecyclerView.Status.NORMAL);
-                LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MainActivity.this);
-                linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-                richRecyclerView.setLayoutManager(linearLayoutManager);
-                richRecyclerView.addItemDecoration(new LinearItemDecoration(linearLayoutManager, ContextCompat.getDrawable(MainActivity.this, R.drawable.recycler_view_decoration)));
-                MyAdapter myAdapter = new MyAdapter(MainActivity.this, level);
-                richRecyclerView.setRecyclerAdapter(myAdapter);
-                myAdapter.setData(items);
-                myAdapter.notifyDataSetChanged();
-                return ;
+            if (WHAT_INIT == msg.what) {
+                int index = msg.arg1;
+                MsgObj msgObj = (MsgObj) msg.obj;
+                Item item = msgObj.getParent();
+                ArrayList<Item> items = msgObj.getItems();
+                RefreshRecyclerView refreshRecyclerView = multiRecyclerView.getRefreshRecyclerView(index);
+                MyAdapter adapter = (MyAdapter) refreshRecyclerView.getRecyclerAdapter();
+                if (adapter == null) {
+                    adapter = new MyAdapter(MainActivity.this, index);
+                    refreshRecyclerView.setRecyclerAdapter(adapter);
+                }
+                //查看前一个
+                Item previousItem = getPreviousSelected(index);
+                if (index==0 || (item != null && previousItem!=null&&item.getKey()!=null&&item.getKey().equals(previousItem.getKey()))) {//上一级选项未切换
+                    adapter.setData(items);
+                    adapter.setSelected(null);
+                    adapter.notifyDataSetChanged();
+                    multiRecyclerView.setStatus(index, Status.NORMAL);
+                }
+                return;
             }
-            if (WHAT_REFRESH==msg.what) {
-                int level = msg.arg1;
-                ArrayList<Item> items = (ArrayList<Item>)msg.obj;
-                RefreshRecyclerView refreshRecyclerView = multiRecyclerView.getRefreshRecyclerView(level);
-                refreshRecyclerView.setRefreshing(false);
-                RichRecyclerView richRecyclerView = refreshRecyclerView.getRichRecyclerView();
-                richRecyclerView.getRecyclerAdapter().setData(items);
-                richRecyclerView.getRecyclerAdapter().notifyDataSetChanged();
+            if (WHAT_REFRESH == msg.what) {
+                int index = msg.arg1;
+                MsgObj msgObj = (MsgObj) msg.obj;
+                Item parent = msgObj.getParent();
+                ArrayList<Item> items = msgObj.getItems();
+                RefreshRecyclerView refreshRecyclerView = multiRecyclerView.getRefreshRecyclerView(index);
+                RecyclerAdapter adapter = refreshRecyclerView.getRecyclerAdapter();
+                if (adapter == null) {
+                    adapter = new MyAdapter(MainActivity.this, index);
+                    refreshRecyclerView.setRecyclerAdapter(adapter);
+                }
+                adapter.setData(items);
+                adapter.notifyDataSetChanged();
+                multiRecyclerView.setStatus(index, Status.NORMAL);
+                //TODO 如果刷新完之后已选择数据不存在,需要关闭当前级别之后的数据
             }
-
         }
     };
 
     /**
      * 生成level级别的数据，item为父级节点的数据
+     *
      * @param level
      * @param item
      * @return
@@ -91,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
         Item child = null;
         for (int i = 0; i < 30; i++) {
             child = new Item();
-            if (level==0||item==null) {
+            if (level == 0 || item == null) {
                 child.setKey("" + i);
             } else {
                 child.setKey(item.getKey() + "-" + i);
@@ -107,96 +116,170 @@ public class MainActivity extends AppCompatActivity {
         return data;
     }
 
-    class MyListener implements  SwipeRefreshLayout.OnRefreshListener, View.OnClickListener {
 
-        private Item item;
+    private void sendMessage(int what, int level, MsgObj msgObj) {
+        Message msg = new Message();
+        msg.what = what;
+        msg.arg1 = level;
+        msg.obj = msgObj;
+        handler.sendMessageDelayed(msg, 3000);
+    }
 
-        private int level;
-
-        /**
-         *
-         * @param item 用于指定父级节点,根据父节点查
-         * @param level
-         */
-        public MyListener(Item item, int level) {
-            this.item = item;
-            this.level = level;
-        }
-
-        @Override
-        public void onRefresh() {
-            ArrayList<Item> items = getData(level, item);
-            sendMessage(WHAT_REFRESH, level, items);
-        }
-
-        @Override
-        public void onClick(View view) {
-            if (item == null) {
-                return;
-            }
-            if (!item.isHasSubItems()) {
-                RefreshRecyclerView refreshRecyclerView = multiRecyclerView.getRefreshRecyclerView(level + 1);
-                if (refreshRecyclerView!=null) {
-                    refreshRecyclerView.setVisibility(View.GONE);
-                }
-                Toast.makeText(view.getContext(), item.getValue(), Toast.LENGTH_SHORT).show();
-                return;
-            }
-            RefreshRecyclerView refreshRecyclerView = multiRecyclerView.getRefreshRecyclerView(level + 1);
-            if (refreshRecyclerView==null) {
-                refreshRecyclerView = new RefreshRecyclerView(MainActivity.this);
-                multiRecyclerView.addRefreshRecyclerView(refreshRecyclerView);
-                refreshRecyclerView.setEnabled(false);
-                RichRecyclerView richRecyclerView = refreshRecyclerView.getRichRecyclerView();
-                richRecyclerView.setStatus(RichRecyclerView.Status.LOADING);
-                MyListener listener = new MyListener(item, level + 1);
-                refreshRecyclerView.setOnRefreshListener(listener);
-                ArrayList<Item> items =  getData(level+1, item);
-                item.setSubItems(items);
-                sendMessage(WHAT_INIT, level + 1, items);
-                return ;
-            }
-            ArrayList<Item> items = item.getSubItems();
-            RichRecyclerView richRecyclerView = refreshRecyclerView.getRichRecyclerView();
-            if (items!=null&&items.size()>=1) {
-                refreshRecyclerView.setVisibility(View.VISIBLE);
-                richRecyclerView.getRecyclerAdapter().setData(items);
-                richRecyclerView.getRecyclerAdapter().notifyDataSetChanged();
-                return ;
-            }
-            richRecyclerView.setStatus(RichRecyclerView.Status.LOADING);
-            sendMessage(WHAT_INIT, 0, getData(level + 1 , item));
-        }
+    private RefreshRecyclerView createRefreshRecyclerView() {
+        RefreshRecyclerView refreshRecyclerView = (RefreshRecyclerView) View.inflate(this, R.layout.refresh_recycler_view, null);
+        return refreshRecyclerView;
     }
 
 
     class MyAdapter extends RecyclerAdapter<Item> {
 
-        private int level;
+        private int index;
+        private Item selected;
 
-        public MyAdapter(Context context, int level) {
+        public MyAdapter(Context context, int index) {
             super(context);
-            this.level = level;
+            this.index = index;
         }
 
         @Override
-        public ViewHolder<Item> onCreateViewHolder(ViewGroup parent, int viewType) {
+        public ViewHolder<Item> onCreateViewHolder(final ViewGroup parent, int viewType) {
             return new ViewHolder<Item>(getInflater().inflate(R.layout.recycler_view_item, parent, false)) {
                 @Override
                 public void setView(Item data) {
                     TextView textView = (TextView) getView();
                     textView.setText(data.getValue());
-                    textView.setOnClickListener(new MyListener(data, level));
+                    if (checkSelected(data)) {
+                        textView.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorPrimary));
+                    } else {
+                        textView.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
+                    }
+                    textView.setOnClickListener(new MyListener(index, data));
                 }
             };
+
+
+        }
+
+        private boolean checkSelected(Item item) {
+            return selected != null && item != null && selected.getKey() != null && selected.getKey().equals(item.getKey());
+        }
+
+        class MyListener implements View.OnClickListener {
+            private int index;
+            private Item item;
+
+            public MyListener(int index, Item item) {
+                this.index = index;
+                this.item = item;
+            }
+
+            @Override
+            public void onClick(View view) {
+                if (checkSelected(item)) {
+                    return;
+                }
+                selected = item;
+                notifyDataSetChanged();
+                handleClick(index, item);
+            }
+        }
+
+        public Item getSelected() {
+            return selected;
+        }
+
+        public void setSelected(Item selected) {
+            this.selected = selected;
         }
     }
 
-    private void sendMessage(int what, int level, ArrayList<Item> items) {
-        Message msg = new Message();
-        msg.what = what;
-        msg.arg1 = level;
-        msg.obj = items;
-        handler.sendMessageDelayed(msg, 3000);
+    private void handleClick(int index, Item item) {
+        if (item == null) {
+            return;
+        }
+        if (!item.isHasSubItems()) {//没有下一级数据
+            RefreshRecyclerView refreshRecyclerView = multiRecyclerView.getRefreshRecyclerView(index + 1);
+            if (refreshRecyclerView != null) {
+                refreshRecyclerView.setVisibility(View.GONE);
+            }
+            MyAdapter adapter = null;
+            Item selected = null;
+            StringBuffer buffer = new StringBuffer();
+            for (int i = 0; i < index; i++) {
+                refreshRecyclerView = multiRecyclerView.getRefreshRecyclerView(i);
+                adapter = (MyAdapter) refreshRecyclerView.getRecyclerAdapter();
+                selected = adapter.getSelected();
+                buffer.append(selected != null ? selected.getValue() : "");
+                buffer.append("\n");
+            }
+            buffer.append(item != null ? item.getValue() : "");
+            Toast.makeText(this, buffer.toString(), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        RefreshRecyclerView refreshRecyclerView = multiRecyclerView.getRefreshRecyclerView(index + 1);
+        if (refreshRecyclerView == null) {
+            refreshRecyclerView = createRefreshRecyclerView();
+            refreshRecyclerView.setOnRefreshListener(new MyListener(index + 1, item));
+            multiRecyclerView.addRefreshRecyclerView(refreshRecyclerView);
+        }
+        refreshRecyclerView.setVisibility(View.VISIBLE);
+        refreshRecyclerView.setStatus(Status.LOADING);
+        ArrayList<Item> items = item.getSubItems();
+        if (items != null && items.size() >= 1) {
+            sendMessage(WHAT_INIT, index + 1, new MsgObj(item, items));
+            return;
+        }
+        item.setSubItems(getData(index + 1, item));
+        sendMessage(WHAT_INIT, index + 1, new MsgObj(item, item.getSubItems()));
     }
+
+    class MyListener implements SwipeRefreshLayout.OnRefreshListener {
+
+        private int index;
+        private Item parent;
+
+        public MyListener(int index, Item parent) {
+            this.index = index;
+            this.parent = parent;
+        }
+
+
+        @Override
+        public void onRefresh() {
+            ArrayList<Item> items = getData(index, parent);
+            sendMessage(WHAT_REFRESH, index, new MsgObj(parent, items));
+        }
+    }
+
+    class MsgObj {
+        private Item parent;
+        private ArrayList<Item> items;
+
+        public MsgObj(Item parent, ArrayList<Item> items) {
+            this.parent = parent;
+            this.items = items;
+        }
+
+        public Item getParent() {
+            return parent;
+        }
+
+        public ArrayList<Item> getItems() {
+            return items;
+        }
+    }
+
+    private Item getPreviousSelected(int index) {
+        RefreshRecyclerView refreshRecyclerView = multiRecyclerView.getRefreshRecyclerView(index - 1);
+        if (refreshRecyclerView == null) {
+            return null;
+        }
+        MyAdapter adapter = (MyAdapter) refreshRecyclerView.getRecyclerAdapter();
+        if (adapter == null) {
+            return null;
+        }
+        Item item = adapter.getSelected();
+        return item;
+    }
+
 }
