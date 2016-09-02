@@ -1,6 +1,6 @@
 apply plugin: 'com.github.dcendents.android-maven'
 
-group='com.jingtuo.android.widget'
+group='com.github.jingtuo'
 
 // build a jar with source files
 task sourcesJar(type: Jar) {
