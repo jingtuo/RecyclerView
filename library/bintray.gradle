@@ -40,6 +40,21 @@ install {
 bintray {
     user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
     key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+
+    configurations = ['deployables'] //When uploading configuration files
+    // - OR -
+    publications = ['mavenStuff'] //When uploading Maven-based publication files
+    // - AND/OR -
+    filesSpec { //When uploading any arbitrary files ('filesSpec' is a standard Gradle CopySpec)
+        from 'arbitrary-files'
+        into 'standalone_files/level1'
+        rename '(.+)\\.(.+)', '$1-suffix.$2'
+    }
+
+    dryRun = false //[Default: false] Whether to run this as dry-run, without deploying
+    publish = true //[Default: false] Whether version should be auto published after an upload
+    override = true //[Default: false] Whether to override version artifacts already published
+
     pkg {
         repo = 'maven'
         name = 'RecyclerView'
@@ -68,15 +83,6 @@ bintray {
                 close = '1' //Optional property. By default the staging repository is closed and artifacts are released to Maven Central. You can optionally turn this behaviour off (by puting 0 as value) and release the version manually.
             }
         }
-    }
-    configurations = ['deployables'] //When uploading configuration files
-    dryRun = false //[Default: false] Whether to run this as dry-run, without deploying
-    publish = true //[Default: false] Whether version should be auto published after an upload
-    override = true //[Default: false] Whether to override version artifacts already published
-    filesSpec { //When uploading any arbitrary files ('filesSpec' is a standard Gradle CopySpec)
-        from 'arbitrary-files'
-        into 'standalone_files/level1'
-        rename '(.+)\\.(.+)', '$1-suffix.$2'
     }
 }
 
