@@ -9,6 +9,11 @@ buildscript {
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
+
+        //用于将library部署到jCenter,尚不知在哪里查看下面两个插件的最新版本
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+        //当写com.github.dcendents:android-maven-gradle-plugin:1.3时,出现错误:No service of type Factory available int ProjectScopeServices
     }
 }
 
