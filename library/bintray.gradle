@@ -43,7 +43,7 @@ bintray {
 
     configurations = ['deployables'] //When uploading configuration files
     // - OR -
-    publications = ['mavenStuff'] //When uploading Maven-based publication files
+//    publications = ['mavenStuff'] //When uploading Maven-based publication files
     // - AND/OR -
     filesSpec { //When uploading any arbitrary files ('filesSpec' is a standard Gradle CopySpec)
         from 'arbitrary-files'
