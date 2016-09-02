@@ -25,4 +25,4 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:24.2.0'
 }
 
-apply from: 'jitpack.gradle'
+apply from : 'bintray.gradle'

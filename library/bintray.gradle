@@ -1,0 +1,44 @@
+apply plugin: 'maven-publish'
+
+group ='com.jingtuo.android.widget'
+
+version = '1.0.0'
+
+publishing {
+    publications {
+        MyPublication(MavenPublication) {
+//            from components.java//测试有问题
+            groupId 'com.jingtuo.android.widget'
+            artifactId 'RecyclerView'
+            version '1.0.0'
+        }
+    }
+}
+
+//bintray
+bintray {
+    user = 'jingtuo'
+    key = '65fedb136ad821f67f677167813e4874303e8a26'
+    pkg {
+        repo = 'maven'
+        name = 'RecyclerView'
+//        userOrg = ''//default bintray.user
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/jingtuo/RecyclerView.git'
+        version {
+            name = '1.0.0'
+            desc = 'RecyclerView 1.0.0'
+            released = new Date()
+            vcsTag = '1.0.0'
+            //Attributes to be attached to the version
+            attributes = ['gradle-plugin': 'com.use.less:com.use.less.gradle:gradle-useless-plugin']
+        }
+    }
+//    publications = ['MyPublication']//第一种方式, 未验证通过
+    configurations = ['archives']//第二种方式
+    //第三种方式
+//    filesSpec {
+//        from 'build/outputs/aar'
+//        into ''
+//    }
+}

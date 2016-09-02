@@ -11,14 +11,16 @@ buildscript {
         // in the individual module build.gradle files
         //使用JitPack
         //https://github.com/dcendents/android-maven-gradle-plugin#note-on-releases
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.4.1' // Add this line
     }
+}
+
+plugins {
+    id "com.jfrog.bintray" version "1.7"
 }
 
 allprojects {
     repositories {
         jcenter()
-        maven { url "https://jitpack.io" }
     }
 }
 
